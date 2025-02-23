@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify
-import yfinance as yf
+import requests
 from flask_cors import CORS
 import pandas as pd
 from functools import lru_cache
@@ -34,34 +34,35 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# FMP API Key from environment variable
+FMP_API_KEY = os.environ.get('FMP_API_KEY')
+if not FMP_API_KEY:
+    raise ValueError("FMP_API_KEY environment variable is not set")
+
 # Cache for 5 minutes
 @lru_cache(maxsize=100)
-def fetch_yf_data(ticker: str, start: str, end: str):
+def fetch_fmp_data(ticker: str, start: str, end: str):
     try:
         logger.info(f"Fetching data for {ticker} from {start} to {end}")
-        # Create a Ticker object
-        tk = yf.Ticker(ticker)
-        # Get historical data
-        data = tk.history(start=start, end=end)
-        if data.empty:
+        url = f"https://financialmodelingprep.com/api/v3/historical-price-full/{ticker}?apikey={FMP_API_KEY}&from={start}&to={end}"
+        response = requests.get(url)
+        response.raise_for_status()  # Raise an exception for bad status codes
+        
+        data = response.json()
+        if 'historical' not in data:
             raise ValueError(f"No data found for ticker {ticker}")
-        logger.info(f"Received data for {ticker}: {len(data)} rows")
-        return data
+            
+        # Convert to pandas DataFrame and sort by date
+        df = pd.DataFrame(data['historical'])
+        df['date'] = pd.to_datetime(df['date'])
+        df = df.sort_values('date')
+        df.set_index('date', inplace=True)
+        
+        logger.info(f"Received data for {ticker}: {len(df)} rows")
+        return df
     except Exception as e:
-        logger.error(f"Error in fetch_yf_data: {str(e)}")
+        logger.error(f"Error in fetch_fmp_data: {str(e)}")
         raise
-
-# Cache for 1 hour
-@lru_cache(maxsize=100)
-def fetch_yf_ticker_info(ticker: str):
-    try:
-        ticker_info = yf.Ticker(ticker)
-        # Verify the ticker is valid by accessing a property
-        ticker_info.info
-        return ticker_info
-    except Exception as e:
-        logger.error(f"Error fetching ticker info: {str(e)}")
-        raise ValueError(f"Invalid ticker symbol: {ticker}")
 
 @app.route('/stock-data', methods=['GET'])
 @limiter.limit("30 per minute")
@@ -80,18 +81,18 @@ def get_stock_data():
         start_date = (datetime.now() - timedelta(days=365)).strftime('%Y-%m-%d')
         
         logger.info(f"Fetching data for {ticker} from {start_date} to {end_date}")
-        data = fetch_yf_data(ticker, start_date, end_date)
+        data = fetch_fmp_data(ticker, start_date, end_date)
 
         result = []
         for index, row in data.iterrows():
             try:
                 result.append({
                     'date': index.strftime('%Y-%m-%d'),
-                    'open': float(row['Open']),
-                    'high': float(row['High']),
-                    'low': float(row['Low']),
-                    'close': float(row['Close']),
-                    'volume': int(row['Volume'])
+                    'open': float(row['open']),
+                    'high': float(row['high']),
+                    'low': float(row['low']),
+                    'close': float(row['close']),
+                    'volume': int(row['volume'])
                 })
             except Exception as e:
                 logger.error(f"Error processing row: {e}")
@@ -109,68 +110,10 @@ def get_stock_data():
         logger.error(f"Error fetching data for {ticker}: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
-@app.route('/stock-events', methods=['GET'])
-def get_stock_events():
-    ticker = request.args.get('ticker')
-    start = request.args.get('start')
-    end = request.args.get('end')
-
-    if not all([ticker, start, end]):
-        return jsonify({'error': 'Missing required parameters'}), 400
-
-    try:
-        stock = fetch_yf_ticker_info(ticker)
-        events = []
-        
-        start_date = pd.to_datetime(start).normalize()
-        end_date = pd.to_datetime(end).normalize()
-
-        # Get dividends
-        dividends = stock.dividends
-        if not dividends.empty:
-            dividend_dates = dividends.index.tz_localize(None)
-            mask = (dividend_dates >= start_date) & (dividend_dates <= end_date)
-            filtered_dividends = dividends[mask]
-            
-            for date, value in filtered_dividends.items():
-                naive_date = date.tz_localize(None)
-                events.append({
-                    'date': naive_date.strftime('%Y-%m-%d'),
-                    'type': 'dividend',
-                    'event': f'Dividend: ${value:.2f}',
-                    'description': f'${value:.2f} dividend payment',
-                })
-
-        # Get stock splits
-        splits = stock.splits
-        if not splits.empty:
-            split_dates = splits.index.tz_localize(None)
-            mask = (split_dates >= start_date) & (split_dates <= end_date)
-            filtered_splits = splits[mask]
-            
-            for date, value in filtered_splits.items():
-                naive_date = date.tz_localize(None)
-                numerator = int(value) if value >= 1 else 1
-                denominator = 1 if value >= 1 else int(1/value)
-                events.append({
-                    'date': naive_date.strftime('%Y-%m-%d'),
-                    'type': 'split',
-                    'event': f'{numerator}:{denominator} Stock Split',
-                    'description': f'{numerator}:{denominator} stock split',
-                })
-
-        return jsonify(events)
-    except Exception as e:
-        logger.error(f"Error fetching events for {ticker}: {str(e)}")
-        return jsonify({'error': 'Failed to fetch stock events'}), 500
-
-# Health check endpoint
 @app.route('/health', methods=['GET'])
 def health_check():
     return jsonify({'status': 'healthy'}), 200
 
 if __name__ == '__main__':
-    # Get port from environment variable (Render sets this automatically)
     port = int(os.environ.get('PORT', 10000))
-    # Bind to 0.0.0.0 for Render
     app.run(host='0.0.0.0', port=port)

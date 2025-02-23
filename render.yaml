@@ -9,6 +9,8 @@ services:
         value: 3.9.0
       - key: FLASK_ENV
         value: production
+      - key: FMP_API_KEY
+        value: fXWA7WgP5JOopT2glCKnkYoig8Aj5wye
     autoDeploy: true
 
   - type: web
