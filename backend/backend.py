@@ -39,7 +39,10 @@ logger = logging.getLogger(__name__)
 def fetch_yf_data(ticker: str, start: str, end: str):
     try:
         logger.info(f"Fetching data for {ticker} from {start} to {end}")
-        data = yf.download(ticker, start=start, end=end, progress=False)
+        # Create a Ticker object
+        tk = yf.Ticker(ticker)
+        # Get historical data
+        data = tk.history(start=start, end=end)
         if data.empty:
             raise ValueError(f"No data found for ticker {ticker}")
         logger.info(f"Received data for {ticker}: {len(data)} rows")
@@ -78,21 +81,25 @@ def get_stock_data():
         
         logger.info(f"Fetching data for {ticker} from {start_date} to {end_date}")
         data = fetch_yf_data(ticker, start_date, end_date)
-        
-        if isinstance(data.columns, pd.MultiIndex):
-            data.columns = [col[0] for col in data.columns]
 
         result = []
         for index, row in data.iterrows():
-            result.append({
-                'date': index.strftime('%Y-%m-%d'),
-                'open': float(row['Open']),
-                'high': float(row['High']),
-                'low': float(row['Low']),
-                'close': float(row['Close']),
-                'volume': int(row['Volume'])
-            })
+            try:
+                result.append({
+                    'date': index.strftime('%Y-%m-%d'),
+                    'open': float(row['Open']),
+                    'high': float(row['High']),
+                    'low': float(row['Low']),
+                    'close': float(row['Close']),
+                    'volume': int(row['Volume'])
+                })
+            except Exception as e:
+                logger.error(f"Error processing row: {e}")
+                continue
         
+        if not result:
+            return jsonify({'error': 'No valid data found'}), 404
+            
         logger.info(f"Returning {len(result)} data points")
         return jsonify(result)
     except ValueError as ve:
