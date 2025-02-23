@@ -32,7 +32,7 @@ export const getStockNews = async (
         symbol: ticker,
         from: format(startDate, 'yyyy-MM-dd'),
         to: format(endDate, 'yyyy-MM-dd'),
-        token: FINNHUB_API_KEY,
+        token: FINNHUB_API_KEY
       },
     });
     if (!Array.isArray(response.data)) return [];
