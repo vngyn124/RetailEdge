@@ -11,11 +11,13 @@ from flask_limiter.util import get_remote_address
 
 app = Flask(__name__)
 
-# Configure CORS to explicitly allow the frontend domain
+# Configure CORS to be completely open
 CORS(app, 
-     origins=["https://retailedge-1.onrender.com"],
-     allow_headers=["Content-Type", "Authorization"],
-     supports_credentials=True)
+     resources={r"/*": {
+         "origins": "*",
+         "methods": ["GET", "POST", "OPTIONS"],
+         "allow_headers": "*"
+     }})
 
 # Add rate limiting
 limiter = Limiter(
@@ -65,40 +67,25 @@ def get_stock_data():
     logger.info(f"Request args: {request.args}")
     
     ticker = request.args.get('ticker')
-    start = request.args.get('start')
-    end = request.args.get('end')
-
-    if not all([ticker, start, end]):
-        logger.error("Missing required parameters")
-        return jsonify({'error': 'Missing required parameters'}), 400
+    if not ticker:
+        logger.error("Missing ticker parameter")
+        return jsonify({'error': 'Missing ticker parameter'}), 400
 
     try:
-        # Validate date format
-        try:
-            pd.to_datetime(start)
-            pd.to_datetime(end)
-        except ValueError:
-            return jsonify({'error': 'Invalid date format. Use YYYY-MM-DD'}), 400
-
-        # Limit date range to 5 years
-        start_date = pd.to_datetime(start)
-        end_date = pd.to_datetime(end)
-        if end_date - start_date > timedelta(days=1825):  # 5 years
-            return jsonify({'error': 'Date range cannot exceed 5 years'}), 400
-
-        logger.info(f"Fetching data for {ticker}")
-        data = fetch_yf_data(ticker, start, end)
+        # Calculate dates: from 1 year ago to yesterday (to avoid future dates)
+        end_date = (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d')
+        start_date = (datetime.now() - timedelta(days=365)).strftime('%Y-%m-%d')
         
-        data = data[(data.index >= pd.to_datetime(start)) & (data.index <= pd.to_datetime(end))]
-        data.reset_index(inplace=True)
+        logger.info(f"Fetching data for {ticker} from {start_date} to {end_date}")
+        data = fetch_yf_data(ticker, start_date, end_date)
         
         if isinstance(data.columns, pd.MultiIndex):
             data.columns = [col[0] for col in data.columns]
 
         result = []
-        for _, row in data[['Date', 'Open', 'High', 'Low', 'Close', 'Volume']].iterrows():
+        for index, row in data.iterrows():
             result.append({
-                'date': row['Date'].strftime('%Y-%m-%d'),
+                'date': index.strftime('%Y-%m-%d'),
                 'open': float(row['Open']),
                 'high': float(row['High']),
                 'low': float(row['Low']),
@@ -113,7 +100,7 @@ def get_stock_data():
         return jsonify({'error': str(ve)}), 400
     except Exception as e:
         logger.error(f"Error fetching data for {ticker}: {str(e)}")
-        return jsonify({'error': 'Internal server error'}), 500
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/stock-events', methods=['GET'])
 def get_stock_events():
