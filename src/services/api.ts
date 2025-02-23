@@ -2,6 +2,10 @@ import axios from 'axios';
 import { format, subDays } from 'date-fns';
 import { StockData, StockEvent } from '../types/StockTypes';
 
+// Get the base API URL from environment variables, fallback to localhost for development
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
+const FINNHUB_API_KEY = import.meta.env.VITE_FINNHUB_API_KEY || 'your-default-key';
+
 export const getStartDate = (period: string): Date => {
   const today = new Date();
   const mapping: { [key: string]: number } = {
@@ -28,7 +32,7 @@ export const getStockNews = async (
         symbol: ticker,
         from: format(startDate, 'yyyy-MM-dd'),
         to: format(endDate, 'yyyy-MM-dd'),
-        token: 'cugoub1r01qr6jndbk2gcugoub1r01qr6jndbk30',
+        token: FINNHUB_API_KEY,
       },
     });
     if (!Array.isArray(response.data)) return [];
@@ -52,7 +56,7 @@ export const getStockEvents = async (
 ): Promise<StockEvent[]> => {
   if (!ticker) return [];
   try {
-    const response = await axios.get('http://127.0.0.1:5000/stock-events', {
+    const response = await axios.get(`${API_BASE_URL}/stock-events`, {
       params: {
         ticker,
         start: format(startDate, 'yyyy-MM-dd'),
@@ -73,7 +77,7 @@ export const getStockData = async (
   if (!ticker) return [];
   try {
     const endDate = new Date();
-    const response = await axios.get('http://127.0.0.1:5000/stock-data', {
+    const response = await axios.get(`${API_BASE_URL}/stock-data`, {
       params: {
         ticker,
         start: format(startDate, 'yyyy-MM-dd'),

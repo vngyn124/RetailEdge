@@ -1,6 +1,5 @@
 import React from 'react';
 import { TimeFrame } from '../types/StockTypes';
-import { THEME } from '../App';
 
 interface ControlsProps {
   ticker: string;

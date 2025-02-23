@@ -4,14 +4,31 @@ from flask_cors import CORS
 import pandas as pd
 from functools import lru_cache
 from datetime import datetime, timedelta
+import logging
+import os
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={
+    r"/*": {
+        "origins": "*",
+        "methods": ["GET", "POST", "OPTIONS"],
+        "allow_headers": ["Content-Type", "Authorization"]
+    }
+})
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 # Cache for 5 minutes
 @lru_cache(maxsize=100)
 def fetch_yf_data(ticker: str, start: str, end: str):
+    logger.info(f"Fetching data for {ticker} from {start} to {end}")
     data = yf.download(ticker, start=start, end=end, progress=False)
+    logger.info(f"Received data for {ticker}: {len(data)} rows")
     return data
 
 # Cache for 1 hour
@@ -21,14 +38,22 @@ def fetch_yf_ticker_info(ticker: str):
 
 @app.route('/stock-data', methods=['GET'])
 def get_stock_data():
+    logger.info("Received request for stock data")
+    logger.info(f"Request args: {request.args}")
+    
     ticker = request.args.get('ticker')
     start = request.args.get('start')
     end = request.args.get('end')
 
+    if not all([ticker, start, end]):
+        logger.error("Missing required parameters")
+        return jsonify({'error': 'Missing required parameters'}), 400
+
     try:
-        # Use cached data
+        logger.info(f"Fetching data for {ticker}")
         data = fetch_yf_data(ticker, start, end)
         if data.empty:
+            logger.warning(f"No data found for {ticker}")
             return jsonify([])
 
         data = data[(data.index >= pd.to_datetime(start)) & (data.index <= pd.to_datetime(end))]
@@ -37,22 +62,22 @@ def get_stock_data():
         if isinstance(data.columns, pd.MultiIndex):
             data.columns = [col[0] for col in data.columns]
 
-        # Only get required columns
         result = []
         for _, row in data[['Date', 'Open', 'High', 'Low', 'Close', 'Volume']].iterrows():
             result.append({
                 'date': row['Date'].strftime('%Y-%m-%d'),
-                'open': row['Open'],
-                'high': row['High'],
-                'low': row['Low'],
-                'close': row['Close'],
-                'volume': row['Volume']
+                'open': float(row['Open']),
+                'high': float(row['High']),
+                'low': float(row['Low']),
+                'close': float(row['Close']),
+                'volume': int(row['Volume'])
             })
         
+        logger.info(f"Returning {len(result)} data points")
         return jsonify(result)
     except Exception as e:
-        print(f"Error fetching data for {ticker}: {e}")
-        return jsonify({'error': str(e)}), 500
+        logger.error(f"Error fetching data for {ticker}: {str(e)}")
+        return jsonify({'error': f'Failed to fetch stock data: {str(e)}'}), 500
 
 @app.route('/stock-events', methods=['GET'])
 def get_stock_events():
@@ -60,29 +85,24 @@ def get_stock_events():
     start = request.args.get('start')
     end = request.args.get('end')
 
-    print(f"Fetching events for {ticker} from {start} to {end}")
+    if not all([ticker, start, end]):
+        return jsonify({'error': 'Missing required parameters'}), 400
 
     try:
-        # Use cached ticker info
         stock = fetch_yf_ticker_info(ticker)
         events = []
         
-        # Convert dates to naive datetime for comparison
         start_date = pd.to_datetime(start).normalize()
         end_date = pd.to_datetime(end).normalize()
 
         # Get dividends
         dividends = stock.dividends
-        print(f"Raw dividends data: {dividends}")
         if not dividends.empty:
-            # Convert dividend dates to naive datetime
             dividend_dates = dividends.index.tz_localize(None)
             mask = (dividend_dates >= start_date) & (dividend_dates <= end_date)
             filtered_dividends = dividends[mask]
-            print(f"Filtered dividends: {filtered_dividends}")
             
             for date, value in filtered_dividends.items():
-                # Convert to naive datetime for consistent formatting
                 naive_date = date.tz_localize(None)
                 events.append({
                     'date': naive_date.strftime('%Y-%m-%d'),
@@ -93,16 +113,12 @@ def get_stock_events():
 
         # Get stock splits
         splits = stock.splits
-        print(f"Raw splits data: {splits}")
         if not splits.empty:
-            # Convert split dates to naive datetime
             split_dates = splits.index.tz_localize(None)
             mask = (split_dates >= start_date) & (split_dates <= end_date)
             filtered_splits = splits[mask]
-            print(f"Filtered splits: {filtered_splits}")
             
             for date, value in filtered_splits.items():
-                # Convert to naive datetime for consistent formatting
                 naive_date = date.tz_localize(None)
                 numerator = int(value) if value >= 1 else 1
                 denominator = 1 if value >= 1 else int(1/value)
@@ -113,11 +129,18 @@ def get_stock_events():
                     'description': f'{numerator}:{denominator} stock split',
                 })
 
-        print(f"Final events: {events}")
         return jsonify(events)
     except Exception as e:
-        print(f"Error fetching events for {ticker}: {e}")
-        return jsonify({'error': str(e)}), 500
+        logger.error(f"Error fetching events for {ticker}: {str(e)}")
+        return jsonify({'error': 'Failed to fetch stock events'}), 500
+
+# Health check endpoint
+@app.route('/health', methods=['GET'])
+def health_check():
+    return jsonify({'status': 'healthy'}), 200
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    # Get port from environment variable (Render sets this automatically)
+    port = int(os.environ.get('PORT', 10000))
+    # Bind to 0.0.0.0 for Render
+    app.run(host='0.0.0.0', port=port)

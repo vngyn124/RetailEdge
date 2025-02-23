@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import StockChart from './components/StockChart';
 import EventList from './components/EventList';
 import Controls from './components/Controls';
@@ -174,10 +174,8 @@ function App() {
             <div className="lg:col-span-2 bg-[#2a2a2a] rounded-lg shadow-xl border border-[#374151]">
               {stockData.length > 0 ? (
                 <StockChart
-                  ticker={ticker}
-                  timeFrame={timeFrame}
-                  events={filteredEvents}
                   data={stockData}
+                  events={filteredEvents}
                 />
               ) : (
                 <div className="p-6 text-center text-gray-400">No stock data available</div>

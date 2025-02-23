@@ -1,6 +1,5 @@
 import React from 'react';
 import { StockEvent } from '../types/StockTypes';
-import { THEME } from '../App';
 
 interface EventListProps {
   events: StockEvent[];

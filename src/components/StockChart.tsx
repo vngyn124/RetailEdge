@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   LineChart,
   Line,
@@ -9,12 +9,9 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { parseISO, format } from 'date-fns';
-import { StockData, StockEvent, TimeFrame } from '../types/StockTypes';
-import { THEME } from '../App';
+import { StockData, StockEvent } from '../types/StockTypes';
 
 interface StockChartProps {
-  ticker: string;
-  timeFrame: TimeFrame;
   events?: StockEvent[];
   data?: StockData[];
 }
@@ -26,8 +23,6 @@ const COLOR_MAP: { [key: string]: string } = {
 };
 
 const StockChart: React.FC<StockChartProps> = ({
-  ticker,
-  timeFrame,
   events = [],
   data = [],
 }) => {
