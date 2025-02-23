@@ -10,13 +10,12 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 
 app = Flask(__name__)
-CORS(app, resources={
-    r"/*": {
-        "origins": "*",
-        "methods": ["GET", "POST", "OPTIONS"],
-        "allow_headers": ["Content-Type", "Authorization"]
-    }
-})
+
+# Configure CORS to explicitly allow the frontend domain
+CORS(app, 
+     origins=["https://retailedge-1.onrender.com"],
+     allow_headers=["Content-Type", "Authorization"],
+     supports_credentials=True)
 
 # Add rate limiting
 limiter = Limiter(
