@@ -6,6 +6,8 @@ from functools import lru_cache
 from datetime import datetime, timedelta
 import logging
 import os
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 
 app = Flask(__name__)
 CORS(app, resources={
@@ -15,6 +17,14 @@ CORS(app, resources={
         "allow_headers": ["Content-Type", "Authorization"]
     }
 })
+
+# Add rate limiting
+limiter = Limiter(
+    app=app,
+    key_func=get_remote_address,
+    default_limits=["200 per day", "50 per hour"],
+    storage_uri="memory://"
+)
 
 # Configure logging
 logging.basicConfig(
@@ -26,17 +36,31 @@ logger = logging.getLogger(__name__)
 # Cache for 5 minutes
 @lru_cache(maxsize=100)
 def fetch_yf_data(ticker: str, start: str, end: str):
-    logger.info(f"Fetching data for {ticker} from {start} to {end}")
-    data = yf.download(ticker, start=start, end=end, progress=False)
-    logger.info(f"Received data for {ticker}: {len(data)} rows")
-    return data
+    try:
+        logger.info(f"Fetching data for {ticker} from {start} to {end}")
+        data = yf.download(ticker, start=start, end=end, progress=False)
+        if data.empty:
+            raise ValueError(f"No data found for ticker {ticker}")
+        logger.info(f"Received data for {ticker}: {len(data)} rows")
+        return data
+    except Exception as e:
+        logger.error(f"Error in fetch_yf_data: {str(e)}")
+        raise
 
 # Cache for 1 hour
 @lru_cache(maxsize=100)
 def fetch_yf_ticker_info(ticker: str):
-    return yf.Ticker(ticker)
+    try:
+        ticker_info = yf.Ticker(ticker)
+        # Verify the ticker is valid by accessing a property
+        ticker_info.info
+        return ticker_info
+    except Exception as e:
+        logger.error(f"Error fetching ticker info: {str(e)}")
+        raise ValueError(f"Invalid ticker symbol: {ticker}")
 
 @app.route('/stock-data', methods=['GET'])
+@limiter.limit("30 per minute")
 def get_stock_data():
     logger.info("Received request for stock data")
     logger.info(f"Request args: {request.args}")
@@ -50,12 +74,22 @@ def get_stock_data():
         return jsonify({'error': 'Missing required parameters'}), 400
 
     try:
+        # Validate date format
+        try:
+            pd.to_datetime(start)
+            pd.to_datetime(end)
+        except ValueError:
+            return jsonify({'error': 'Invalid date format. Use YYYY-MM-DD'}), 400
+
+        # Limit date range to 5 years
+        start_date = pd.to_datetime(start)
+        end_date = pd.to_datetime(end)
+        if end_date - start_date > timedelta(days=1825):  # 5 years
+            return jsonify({'error': 'Date range cannot exceed 5 years'}), 400
+
         logger.info(f"Fetching data for {ticker}")
         data = fetch_yf_data(ticker, start, end)
-        if data.empty:
-            logger.warning(f"No data found for {ticker}")
-            return jsonify([])
-
+        
         data = data[(data.index >= pd.to_datetime(start)) & (data.index <= pd.to_datetime(end))]
         data.reset_index(inplace=True)
         
@@ -75,9 +109,12 @@ def get_stock_data():
         
         logger.info(f"Returning {len(result)} data points")
         return jsonify(result)
+    except ValueError as ve:
+        logger.error(f"Value error: {str(ve)}")
+        return jsonify({'error': str(ve)}), 400
     except Exception as e:
         logger.error(f"Error fetching data for {ticker}: {str(e)}")
-        return jsonify({'error': f'Failed to fetch stock data: {str(e)}'}), 500
+        return jsonify({'error': 'Internal server error'}), 500
 
 @app.route('/stock-events', methods=['GET'])
 def get_stock_events():
