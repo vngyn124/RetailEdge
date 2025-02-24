@@ -23,16 +23,16 @@ const Pricing = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Free Plan */}
-          <div className="bg-[#2a2a2a] rounded-lg shadow-xl overflow-hidden">
+          <div className="bg-[#2a2a2a] rounded-lg shadow-xl overflow-hidden h-full flex flex-col">
             <div className="bg-green-500 p-6 text-center">
               <div className="text-3xl font-bold text-white">Basic</div>
             </div>
-            <div className="p-8 bg-white text-gray-800">
+            <div className="p-8 bg-white text-gray-800 flex-grow flex flex-col">
               <div className="text-center mb-6">
                 <div className="text-5xl font-bold">Free</div>
                 <div className="text-green-500 mt-2">Good for beginners, casual investors</div>
               </div>
-              <ul className="space-y-4">
+              <ul className="space-y-4 flex-grow">
                 <li className="flex items-center">
                   <svg className="h-5 w-5 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
@@ -67,17 +67,17 @@ const Pricing = () => {
           </div>
 
           {/* Value Plan */}
-          <div className="bg-[#2a2a2a] rounded-lg shadow-xl overflow-hidden">
+          <div className="bg-[#2a2a2a] rounded-lg shadow-xl overflow-hidden h-full flex flex-col">
             <div className="bg-blue-400 p-6 text-center">
               <div className="text-3xl font-bold text-white">Standard</div>
             </div>
-            <div className="p-8 bg-white text-gray-800">
+            <div className="p-8 bg-white text-gray-800 flex-grow flex flex-col">
               <div className="text-center mb-6">
                 <div className="text-5xl font-bold">$19.99</div>
                 <div className="text-blue-500 mt-2">Per month</div>
                 <div className="text-gray-600 mt-1">For intermediate investors</div>
               </div>
-              <ul className="space-y-4">
+              <ul className="space-y-4 flex-grow">
                 <li className="flex items-center">
                   <svg className="h-5 w-5 text-blue-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
@@ -112,17 +112,17 @@ const Pricing = () => {
           </div>
 
           {/* Pro Plan */}
-          <div className="bg-[#2a2a2a] rounded-lg shadow-xl overflow-hidden">
+          <div className="bg-[#2a2a2a] rounded-lg shadow-xl overflow-hidden h-full flex flex-col">
             <div className="bg-blue-600 p-6 text-center">
               <div className="text-3xl font-bold text-white">Professional</div>
             </div>
-            <div className="p-8 bg-white text-gray-800">
+            <div className="p-8 bg-white text-gray-800 flex-grow flex flex-col">
               <div className="text-center mb-6">
                 <div className="text-5xl font-bold">$49.99</div>
                 <div className="text-blue-600 mt-2">Per month</div>
                 <div className="text-gray-600 mt-1">For active traders</div>
               </div>
-              <ul className="space-y-4">
+              <ul className="space-y-4 flex-grow">
                 <li className="flex items-center">
                   <svg className="h-5 w-5 text-blue-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
