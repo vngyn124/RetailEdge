@@ -45,6 +45,8 @@ function App() {
       const element = document.getElementById(anchor);
       if (element) {
         element.scrollIntoView({ behavior: 'smooth' });
+      } else {
+        console.warn(`Element with id "${anchor}" not found`);
       }
     } else {
       // Navigate to home page with the anchor
