@@ -7,7 +7,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
 const FINNHUB_API_KEY = import.meta.env.VITE_FINNHUB_API_KEY || 'your-default-key';
 
 export const getStartDate = (period: string): Date => {
-  const today = new Date();
+  const today = new Date(Date.now() + (new Date().getTimezoneOffset() * 60 * 1000)); // UTC date
   const mapping: { [key: string]: number } = {
     '1D': 1,
     '1W': 7,
@@ -72,11 +72,11 @@ export const getStockEvents = async (
 
 export const getStockData = async (
   ticker: string,
-  startDate: Date
+  startDate: Date,
+  endDate: Date
 ): Promise<StockData[]> => {
   if (!ticker) return [];
   try {
-    const endDate = new Date();
     const response = await axios.get(`${API_BASE_URL}/stock-data`, {
       params: {
         ticker,

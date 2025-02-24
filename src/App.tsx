@@ -43,7 +43,7 @@ function App() {
         const endDate = new Date();
 
         // Fetch stock data
-        const stockDataResponse = await getStockData(currentTicker, startDate);
+        const stockDataResponse = await getStockData(currentTicker, startDate, endDate);
         const formattedData = stockDataResponse.map(item => ({
           date: item.date,
           open: item.open,
@@ -82,6 +82,9 @@ function App() {
         }
       } catch (error) {
         console.error('Error fetching data:', error);
+        setStockData([]);
+        setEvents([]);
+        // Consider adding a toast/notification
       } finally {
         setLoading(false);
       }
