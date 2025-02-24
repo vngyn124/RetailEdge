@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify
-import yfinance as yf
+import requests
 from flask_cors import CORS
 import pandas as pd
 from functools import lru_cache
@@ -25,11 +25,12 @@ logger = logging.getLogger(__name__)
 
 # Cache for 5 minutes
 @lru_cache(maxsize=100)
-def fetch_yf_data(ticker: str, start: str, end: str):
-    logger.info(f"Fetching data for {ticker} from {start} to {end}")
-    data = yf.download(ticker, start=start, end=end, progress=False)
-    logger.info(f"Received data for {ticker}: {len(data)} rows")
-    return data
+def fetch_fmp_data(ticker: str, start: str, end: str):
+    logger.info(f"Fetching FMP data for {ticker}")
+    api_key = os.getenv('FMP_API_KEY')
+    url = f"https://financialmodelingprep.com/api/v3/historical-price-full/{ticker}?from={start}&to={end}&apikey={api_key}"
+    response = requests.get(url)
+    return pd.DataFrame(response.json()['historical'])
 
 # Cache for 1 hour
 @lru_cache(maxsize=100)
