@@ -1,12 +1,8 @@
-import { useState, useEffect, useCallback } from 'react';
-import StockChart from './components/StockChart';
-import EventList from './components/EventList';
-import Controls from './components/Controls';
-import { StockData, StockEvent, TimeFrame } from './types/StockTypes';
-import { getStockData, getStockNews, getStockEvents, getStartDate } from './services/api';
-import { debounce } from 'lodash';
-
-const EVENT_TYPES = ['news', 'dividend', 'split'];
+import { BrowserRouter as Router, Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
+import Home from './pages/Home';
+import About from './pages/About';
+import Pricing from './pages/Pricing';
 
 // Theme colors matching the logo
 export const THEME = {
@@ -21,248 +17,123 @@ export const THEME = {
   border: '#374151',    // Dark border color
 };
 
-function App() {
-  const [ticker, setTicker] = useState('AAPL');
-  const [timeFrame, setTimeFrame] = useState<TimeFrame>('1Y');
-  const [activeEventTypes, setActiveEventTypes] = useState(EVENT_TYPES);
-  const [stockData, setStockData] = useState<StockData[]>([]);
-  const [events, setEvents] = useState<StockEvent[]>([]);
-  const [loading, setLoading] = useState(false);
-
-  // Debounced fetch function to prevent too many API calls
-  const fetchData = useCallback(
-    debounce(async (currentTicker: string, currentTimeFrame: TimeFrame, currentEventTypes: string[]) => {
-      if (!currentTicker.trim()) {
-        console.warn('Ticker is empty, skipping fetch');
-        return;
-      }
-
-      setLoading(true);
-      try {
-        const startDate = getStartDate(currentTimeFrame);
-        const endDate = new Date();
-
-        // Fetch stock data
-        const stockDataResponse = await getStockData(currentTicker, startDate, endDate);
-        const formattedData = stockDataResponse.map(item => ({
-          date: item.date,
-          open: item.open,
-          high: item.high,
-          low: item.low,
-          close: item.close,
-          volume: item.volume,
-        }));
-        setStockData(formattedData);
-
-        // Only fetch events if we have stock data
-        if (formattedData.length > 0) {
-          const allEvents: StockEvent[] = [];
-          
-          // Only fetch the event types that are active
-          const fetchPromises: Promise<StockEvent[]>[] = [];
-          
-          if (currentEventTypes.includes('news')) {
-            fetchPromises.push(getStockNews(currentTicker, startDate, endDate));
-          } else {
-            fetchPromises.push(Promise.resolve([]));
-          }
-          
-          if (currentEventTypes.includes('dividend') || currentEventTypes.includes('split')) {
-            fetchPromises.push(getStockEvents(currentTicker, startDate, endDate));
-          } else {
-            fetchPromises.push(Promise.resolve([]));
-          }
-          
-          const [newsEvents, stockEvents] = await Promise.all(fetchPromises);
-          console.log('News events:', newsEvents);
-          console.log('Stock events (dividends/splits):', stockEvents);
-          allEvents.push(...newsEvents, ...stockEvents);
-          console.log('All events:', allEvents);
-          setEvents(allEvents);
-        }
-      } catch (error) {
-        console.error('Error fetching data:', error);
-        setStockData([]);
-        setEvents([]);
-        // Consider adding a toast/notification
-      } finally {
-        setLoading(false);
-      }
-    }, 300),
-    []
-  );
+// ScrollToAnchor component to handle hash navigation
+function ScrollToAnchor() {
+  const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
-    fetchData(ticker, timeFrame, activeEventTypes);
+    // If there's a hash in the URL
+    if (location.hash) {
+      // If we're not on the home page, navigate to home with the hash
+      if (location.pathname !== '/') {
+        navigate('/' + location.hash);
+        return;
+      }
+    }
+  }, [location, navigate]);
+
+  return null;
+}
+
+function App() {
+  const handleAnchorClick = (e: React.MouseEvent<HTMLAnchorElement>, anchor: string) => {
+    e.preventDefault();
     
-    // Cleanup
-    return () => {
-      fetchData.cancel();
-    };
-  }, [ticker, timeFrame, activeEventTypes, fetchData]);
-
-  const handleTickerChange = (newTicker: string) => {
-    setTicker(newTicker.toUpperCase());
+    // If we're already on the home page
+    if (window.location.pathname === '/') {
+      const element = document.getElementById(anchor);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+      }
+    } else {
+      // Navigate to home page with the anchor
+      window.location.href = '/#' + anchor;
+    }
   };
-
-  const handleEventTypeToggle = (type: string) => {
-    setActiveEventTypes(prev =>
-      prev.includes(type) ? prev.filter(t => t !== type) : [...prev, type]
-    );
-  };
-
-  const filteredEvents = events.filter(event => 
-    activeEventTypes.includes(event.type)
-  );
 
   return (
-    <div className="min-h-screen bg-[#1a1a1a] text-white">
-      {/* Navigation */}
-      <nav className="bg-[#2a2a2a] border-b border-[#374151]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center">
-              <span className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-green-400 bg-clip-text text-transparent">
-                RetailEdge
-              </span>
-            </div>
-            <div className="hidden md:block">
-              <div className="ml-10 flex items-baseline space-x-4">
-                <a href="#features" className="text-gray-300 hover:text-white px-3 py-2">Features</a>
-                <a href="#about" className="text-gray-300 hover:text-white px-3 py-2">About</a>
-                <a href="#contact" className="text-gray-300 hover:text-white px-3 py-2">Contact</a>
+    <Router>
+      <ScrollToAnchor />
+      <div className="min-h-screen bg-[#1a1a1a] text-white">
+        {/* Navigation */}
+        <nav className="bg-[#2a2a2a] border-b border-[#374151]">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between h-16">
+              <div className="flex items-center">
+                <Link to="/" className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-green-400 bg-clip-text text-transparent">
+                  RetailEdge
+                </Link>
+              </div>
+              <div className="hidden md:block">
+                <div className="ml-10 flex items-baseline space-x-4">
+                  <a href="#features" onClick={(e) => handleAnchorClick(e, 'features')} className="text-gray-300 hover:text-white px-3 py-2">Features</a>
+                  <Link to="/about" className="text-gray-300 hover:text-white px-3 py-2">About</Link>
+                  <Link to="/pricing" className="text-gray-300 hover:text-white px-3 py-2">Pricing</Link>
+                  <a href="#contact" onClick={(e) => handleAnchorClick(e, 'contact')} className="text-gray-300 hover:text-white px-3 py-2">Contact</a>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </nav>
+        </nav>
 
-      {/* Hero Section */}
-      <div className="relative bg-[#1a1a1a] overflow-hidden">
-        <div className="max-w-7xl mx-auto">
-          <div className="relative z-10 pb-8 sm:pb-16 md:pb-20 lg:w-full lg:pb-28 xl:pb-32">
-            <main className="mt-10 mx-auto max-w-7xl px-4 sm:mt-12 sm:px-6 md:mt-16 lg:mt-20 lg:px-8 xl:mt-28">
-              <div className="text-center">
-                <h1 className="text-4xl tracking-tight font-extrabold text-white sm:text-5xl md:text-6xl">
-                  <span className="block">Professional Stock Analysis</span>
-                  <span className="block text-blue-500">Made Simple</span>
-                </h1>
-                <p className="mt-3 max-w-md mx-auto text-base text-gray-300 sm:text-lg md:mt-5 md:text-xl md:max-w-3xl">
-                  Track stocks, dividends, and market events in real-time with our advanced analytics platform.
+        {/* Routes */}
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/pricing" element={<Pricing />} />
+        </Routes>
+
+        {/* Footer */}
+        <footer className="bg-[#2a2a2a] border-t border-[#374151]">
+          <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div>
+                <h3 className="text-xl font-bold text-white mb-4">RetailEdge</h3>
+                <p className="text-gray-300">
+                  Professional stock analysis platform for retail investors.
                 </p>
               </div>
-            </main>
+              <div>
+                <h3 className="text-xl font-bold text-white mb-4">Quick Links</h3>
+                <ul className="space-y-2">
+                  <li><a href="#features" onClick={(e) => handleAnchorClick(e, 'features')} className="text-gray-300 hover:text-white">Features</a></li>
+                  <li><Link to="/about" className="text-gray-300 hover:text-white">About</Link></li>
+                  <li><Link to="/pricing" className="text-gray-300 hover:text-white">Pricing</Link></li>
+                  <li><a href="#contact" onClick={(e) => handleAnchorClick(e, 'contact')} className="text-gray-300 hover:text-white">Contact</a></li>
+                </ul>
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-white mb-4">Connect With Us</h3>
+                <div className="flex space-x-4">
+                  <a href="#" className="text-gray-300 hover:text-white">
+                    <span className="sr-only">Twitter</span>
+                    <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84" />
+                    </svg>
+                  </a>
+                  <a href="#" className="text-gray-300 hover:text-white">
+                    <span className="sr-only">GitHub</span>
+                    <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                      <path fillRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clipRule="evenodd" />
+                    </svg>
+                  </a>
+                  <a href="#" className="text-gray-300 hover:text-white">
+                    <span className="sr-only">LinkedIn</span>
+                    <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                      <path fillRule="evenodd" d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" clipRule="evenodd" />
+                    </svg>
+                  </a>
+                </div>
+              </div>
+            </div>
+            <div className="mt-8 border-t border-[#374151] pt-8 text-center">
+              <p className="text-gray-300">&copy; {new Date().getFullYear()} RetailEdge. All rights reserved.</p>
+            </div>
           </div>
-        </div>
+        </footer>
       </div>
-
-      {/* Main Stock App Section */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <Controls
-          ticker={ticker}
-          onTickerChange={handleTickerChange}
-          timeFrame={timeFrame}
-          onTimeFrameChange={setTimeFrame}
-          eventTypes={EVENT_TYPES}
-          activeEventTypes={activeEventTypes}
-          onEventTypeToggle={handleEventTypeToggle}
-        />
-
-        {loading ? (
-          <div className="flex justify-center items-center h-96">
-            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500"></div>
-          </div>
-        ) : (
-          <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 bg-[#2a2a2a] rounded-lg shadow-xl border border-[#374151]">
-              {stockData.length > 0 ? (
-                <StockChart
-                  data={stockData}
-                  events={filteredEvents}
-                />
-              ) : (
-                <div className="p-6 text-center text-gray-400">No stock data available</div>
-              )}
-            </div>
-            <div>
-              <EventList events={filteredEvents} />
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Features Section */}
-      <div id="features" className="py-24 bg-[#2a2a2a]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <h2 className="text-3xl font-extrabold text-white">
-              Advanced Trading Features
-            </h2>
-            <p className="mt-4 text-xl text-gray-300">
-              Everything you need to make informed investment decisions
-            </p>
-          </div>
-
-          <div className="mt-20 grid grid-cols-1 gap-8 md:grid-cols-3">
-            <div className="bg-[#1a1a1a] p-6 rounded-lg border border-[#374151]">
-              <div className="text-blue-500 text-2xl mb-4">📈</div>
-              <h3 className="text-xl font-bold text-white">Real-Time Analytics</h3>
-              <p className="mt-4 text-gray-300">
-                Track stock prices and market events as they happen with our real-time data feeds.
-              </p>
-            </div>
-
-            <div className="bg-[#1a1a1a] p-6 rounded-lg border border-[#374151]">
-              <div className="text-green-500 text-2xl mb-4">📊</div>
-              <h3 className="text-xl font-bold text-white">Event Tracking</h3>
-              <p className="mt-4 text-gray-300">
-                Never miss important events with our comprehensive event tracking system.
-              </p>
-            </div>
-
-            <div className="bg-[#1a1a1a] p-6 rounded-lg border border-[#374151]">
-              <div className="text-orange-500 text-2xl mb-4">🔍</div>
-              <h3 className="text-xl font-bold text-white">Advanced Charts</h3>
-              <p className="mt-4 text-gray-300">
-                Visualize market data with our professional-grade charting tools.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Footer */}
-      <footer className="bg-[#2a2a2a] border-t border-[#374151]">
-        <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div>
-              <h3 className="text-xl font-bold text-white mb-4">RetailEdge</h3>
-              <p className="text-gray-300">
-                Professional stock analysis platform for retail investors.
-              </p>
-            </div>
-            <div>
-              <h3 className="text-xl font-bold text-white mb-4">Quick Links</h3>
-              <ul className="space-y-2">
-                <li><a href="#features" className="text-gray-300 hover:text-white">Features</a></li>
-                <li><a href="#about" className="text-gray-300 hover:text-white">About</a></li>
-                <li><a href="#contact" className="text-gray-300 hover:text-white">Contact</a></li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="text-xl font-bold text-white mb-4">Contact</h3>
-              <p className="text-gray-300">
-                Email: contact@retailedge.com<br />
-                Follow us on Twitter @RetailEdge
-              </p>
-            </div>
-          </div>
-          <div className="mt-8 pt-8 border-t border-[#374151] text-center text-gray-400">
-            <p>&copy; 2024 RetailEdge. All rights reserved.</p>
-          </div>
-        </div>
-      </footer>
-    </div>
+    </Router>
   );
 }
 
