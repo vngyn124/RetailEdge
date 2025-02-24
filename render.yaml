@@ -22,5 +22,5 @@ services:
       - key: NODE_VERSION
         value: 18.0.0
       - key: VITE_API_URL
-        value: https://retailedge-backend.onrender.com
+        value: https://retailedge-wz3p.onrender.com
     autoDeploy: true 
