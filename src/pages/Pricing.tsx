@@ -25,6 +25,11 @@ const Pricing = () => {
                 <p className="mt-3 max-w-md mx-auto text-base text-gray-300 sm:text-lg md:mt-5 md:text-xl md:max-w-3xl">
                   Choose the plan that fits your investment strategy and needs.
                 </p>
+                {currentPlan !== 'free' && (
+                  <p className="mt-3 text-blue-400">
+                    Your current plan: {currentPlan === 'professional' ? 'Professional' : 'Standard'}
+                  </p>
+                )}
               </div>
             </main>
           </div>

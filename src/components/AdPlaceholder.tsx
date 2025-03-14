@@ -1,5 +1,3 @@
-import React from 'react';
-
 const AdPlaceholder = () => {
   return (
     <div className="bg-[#2a2a2a] border border-[#374151] rounded-lg p-4 text-center">
