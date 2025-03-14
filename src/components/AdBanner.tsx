@@ -8,7 +8,7 @@ const AdBanner = ({ position }: { position: 'left' | 'right' }) => {
       top: '50%',
       transform: 'translateY(-50%)',
       width: '12%',
-      height: '600px',
+      height: '750px',
       marginLeft: '5px',
       zIndex: 10,
     },
@@ -18,7 +18,7 @@ const AdBanner = ({ position }: { position: 'left' | 'right' }) => {
       top: '50%',
       transform: 'translateY(-50%)',
       width: '12%',
-      height: '600px',
+      height: '750px',
       marginRight: '5px',
       zIndex: 10,
     }

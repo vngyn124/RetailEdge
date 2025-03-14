@@ -183,10 +183,6 @@ const Pricing = () => {
             <p className="text-gray-300">Yes, you can upgrade or downgrade your plan at any time. Changes will be applied at the start of your next billing cycle.</p>
           </div>
           <div className="mb-6">
-            <h3 className="text-xl font-bold mb-2">Is there a free trial for paid plans?</h3>
-            <p className="text-gray-300">Yes, we offer a 7-day free trial for both our Standard and Professional plans.</p>
-          </div>
-          <div className="mb-6">
             <h3 className="text-xl font-bold mb-2">What payment methods do you accept?</h3>
             <p className="text-gray-300">We accept all major credit cards, PayPal, and Apple Pay.</p>
           </div>
