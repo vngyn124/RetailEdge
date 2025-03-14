@@ -88,7 +88,7 @@ const Pricing = () => {
               <h2 className="text-2xl font-bold text-white">Standard</h2>
             </div>
             <div className="bg-white text-gray-800 p-8 flex flex-col flex-1">
-              <div className="text-5xl font-bold mb-2">$19.99</div>
+              <div className="text-5xl font-bold mb-2">$9.99</div>
               <p className="text-blue-500 mb-2">Per month</p>
               <p className="text-gray-600 mb-6">For intermediate investors</p>
               <ul className="space-y-4 mb-8 flex-1">
@@ -132,7 +132,7 @@ const Pricing = () => {
               <h2 className="text-2xl font-bold text-white">Professional</h2>
             </div>
             <div className="bg-white text-gray-800 p-8 flex flex-col flex-1">
-              <div className="text-5xl font-bold mb-2">$49.99</div>
+              <div className="text-5xl font-bold mb-2">$19.99</div>
               <p className="text-blue-700 mb-2">Per month</p>
               <p className="text-gray-600 mb-6">For active traders</p>
               <ul className="space-y-4 mb-8 flex-1">
