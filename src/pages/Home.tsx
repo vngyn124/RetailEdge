@@ -2,9 +2,11 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import StockChart from '../components/StockChart';
 import EventList from '../components/EventList';
 import Controls from '../components/Controls';
+import AdBanner from '../components/AdBanner';
 import { StockData, StockEvent, TimeFrame } from '../types/StockTypes';
 import { getStockData, getStockNews, getStockEvents, getStartDate } from '../services/api';
 import { debounce } from 'lodash';
+import { useSubscription } from '../context/SubscriptionContext';
 
 const EVENT_TYPES = ['news', 'dividend', 'split'];
 
@@ -18,6 +20,10 @@ const Home = () => {
   
   const featuresRef = useRef<HTMLDivElement>(null);
   const contactRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  // Get subscription context to check if ads should be shown
+  const { showAds, currentPlan } = useSubscription();
 
   // Scroll to section if URL has hash
   useEffect(() => {
@@ -30,6 +36,20 @@ const Home = () => {
       }
     }
   }, []);
+
+  // Effect to handle width adjustment when plan changes
+  useEffect(() => {
+    if (contentRef.current) {
+      // Adjust width based on plan - make content width account for wider ads
+      if (showAds) {
+        contentRef.current.style.width = '75%';
+        contentRef.current.style.margin = '0 auto';
+      } else {
+        contentRef.current.style.width = '100%';
+        contentRef.current.style.margin = '0 auto';
+      }
+    }
+  }, [showAds, currentPlan]);
 
   // Debounced fetch function to prevent too many API calls
   const fetchData = useCallback(
@@ -119,11 +139,19 @@ const Home = () => {
 
   return (
     <div>
+      {/* Show ads if on free plan */}
+      {showAds && (
+        <>
+          <AdBanner position="left" />
+          <AdBanner position="right" />
+        </>
+      )}
+
       {/* Hero Section */}
       <div className="relative bg-[#1a1a1a] overflow-hidden">
-        <div className="max-w-7xl mx-auto">
+        <div className={`mx-auto ${showAds ? 'w-[75%]' : 'max-w-7xl'}`}>
           <div className="relative z-10 pb-8 sm:pb-16 md:pb-20 lg:w-full lg:pb-28 xl:pb-32">
-            <main className="mt-10 mx-auto max-w-7xl px-4 sm:mt-12 sm:px-6 md:mt-16 lg:mt-20 lg:px-8 xl:mt-28">
+            <main className="mt-10 mx-auto px-4 sm:mt-12 sm:px-6 md:mt-16 lg:mt-20 lg:px-8 xl:mt-28">
               <div className="text-center">
                 <h1 className="text-4xl tracking-tight font-extrabold text-white sm:text-5xl md:text-6xl">
                   <span className="block">Professional Stock Analysis</span>
@@ -139,7 +167,15 @@ const Home = () => {
       </div>
 
       {/* Main Stock App Section */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div 
+        ref={contentRef}
+        className={`mx-auto px-4 sm:px-6 lg:px-8 py-12 ${showAds ? 'max-w-full' : 'max-w-7xl'}`}
+        style={{ 
+          width: showAds ? '75%' : '100%',
+          margin: '0 auto',
+          transition: 'width 0.3s ease'
+        }}
+      >
         <Controls
           ticker={ticker}
           onTickerChange={handleTickerChange}
@@ -156,7 +192,7 @@ const Home = () => {
           </div>
         ) : (
           <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 bg-[#2a2a2a] rounded-lg shadow-xl border border-[#374151]">
+            <div className="lg:col-span-2 bg-[#2a2a2a] rounded-lg shadow-xl border border-[#374151]">              
               {stockData.length > 0 ? (
                 <StockChart
                   data={stockData}
@@ -175,7 +211,7 @@ const Home = () => {
 
       {/* Features Section */}
       <div id="features" ref={featuresRef} className="py-24 bg-[#2a2a2a]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className={`mx-auto px-4 sm:px-6 lg:px-8 ${showAds ? 'w-[75%]' : 'max-w-7xl'}`}>
           <div className="text-center">
             <h2 className="text-3xl font-extrabold text-white">
               Advanced Trading Features
@@ -215,7 +251,7 @@ const Home = () => {
 
       {/* Contact Section */}
       <div id="contact" ref={contactRef} className="py-24 bg-[#1a1a1a]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className={`mx-auto px-4 sm:px-6 lg:px-8 ${showAds ? 'w-[75%]' : 'max-w-7xl'}`}>
           <div className="text-center">
             <h2 className="text-3xl font-extrabold text-white">
               Get In Touch
@@ -248,12 +284,12 @@ const Home = () => {
                 </label>
                 <div className="mt-1">
                   <input
-                    id="email"
-                    name="email"
                     type="email"
+                    name="email"
+                    id="email"
                     autoComplete="email"
                     className="py-3 px-4 block w-full bg-[#2a2a2a] border border-[#374151] rounded-md text-white focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="your.email@example.com"
+                    placeholder="Your email"
                   />
                 </div>
               </div>
@@ -267,14 +303,14 @@ const Home = () => {
                     name="message"
                     rows={4}
                     className="py-3 px-4 block w-full bg-[#2a2a2a] border border-[#374151] rounded-md text-white focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="How can we help you?"
+                    placeholder="Your message"
                   ></textarea>
                 </div>
               </div>
               <div>
                 <button
                   type="submit"
-                  className="w-full inline-flex items-center justify-center px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                 >
                   Send Message
                 </button>

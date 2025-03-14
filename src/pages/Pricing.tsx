@@ -1,4 +1,16 @@
+import { useSubscription } from '../context/SubscriptionContext';
+import { useNavigate } from 'react-router-dom';
+
 const Pricing = () => {
+  const { currentPlan, setCurrentPlan } = useSubscription();
+  const navigate = useNavigate();
+
+  const handlePlanSelection = (plan: 'free' | 'standard' | 'professional') => {
+    setCurrentPlan(plan);
+    // Navigate to home page to see the effect of plan selection
+    navigate('/');
+  };
+
   return (
     <div className="min-h-screen bg-[#1a1a1a] text-white">
       {/* Pricing Hero Section */}
@@ -23,136 +35,133 @@ const Pricing = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Free Plan */}
-          <div className="bg-[#2a2a2a] rounded-lg shadow-xl overflow-hidden h-full flex flex-col">
-            <div className="bg-green-500 p-6 text-center">
-              <div className="text-3xl font-bold text-white">Basic</div>
+          <div className="rounded-lg overflow-hidden shadow-lg h-full flex flex-col">
+            <div className="bg-green-500 p-6">
+              <h2 className="text-2xl font-bold text-white">Basic</h2>
             </div>
-            <div className="p-8 bg-white text-gray-800 flex-grow flex flex-col">
-              <div className="text-center mb-6">
-                <div className="text-5xl font-bold">Free</div>
-                <div className="text-green-500 mt-2">Good for beginners, casual investors</div>
-              </div>
-              <ul className="space-y-4 flex-grow">
+            <div className="bg-white text-gray-800 p-8 flex flex-col flex-1">
+              <div className="text-5xl font-bold mb-2">Free</div>
+              <p className="text-green-500 mb-6">Good for beginners, casual investors</p>
+              <ul className="space-y-4 mb-8 flex-1">
                 <li className="flex items-center">
-                  <svg className="h-5 w-5 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  <svg className="h-5 w-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                   </svg>
                   Ads included
                 </li>
                 <li className="flex items-center">
-                  <svg className="h-5 w-5 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  <svg className="h-5 w-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                   </svg>
                   5 Stock Lookups / day
                 </li>
                 <li className="flex items-center">
-                  <svg className="h-5 w-5 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  <svg className="h-5 w-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                   </svg>
                   Basic charts
                 </li>
                 <li className="flex items-center">
-                  <svg className="h-5 w-5 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  <svg className="h-5 w-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                   </svg>
                   Email support
                 </li>
               </ul>
-              <div className="mt-8">
-                <button className="w-full bg-green-500 text-white py-3 px-4 rounded-lg font-bold hover:bg-green-600 transition duration-300">
-                  TRY IT FREE
-                </button>
-              </div>
+              <button 
+                className="w-full bg-green-500 text-white rounded py-2 px-4 hover:bg-green-600 transition-colors"
+                onClick={() => handlePlanSelection('free')}
+              >
+                TRY IT FREE
+              </button>
             </div>
           </div>
 
-          {/* Value Plan */}
-          <div className="bg-[#2a2a2a] rounded-lg shadow-xl overflow-hidden h-full flex flex-col">
-            <div className="bg-blue-400 p-6 text-center">
-              <div className="text-3xl font-bold text-white">Standard</div>
+          {/* Standard Plan */}
+          <div className="rounded-lg overflow-hidden shadow-lg h-full flex flex-col">
+            <div className="bg-blue-500 p-6">
+              <h2 className="text-2xl font-bold text-white">Standard</h2>
             </div>
-            <div className="p-8 bg-white text-gray-800 flex-grow flex flex-col">
-              <div className="text-center mb-6">
-                <div className="text-5xl font-bold">$19.99</div>
-                <div className="text-blue-500 mt-2">Per month</div>
-                <div className="text-gray-600 mt-1">For intermediate investors</div>
-              </div>
-              <ul className="space-y-4 flex-grow">
+            <div className="bg-white text-gray-800 p-8 flex flex-col flex-1">
+              <div className="text-5xl font-bold mb-2">$19.99</div>
+              <p className="text-blue-500 mb-2">Per month</p>
+              <p className="text-gray-600 mb-6">For intermediate investors</p>
+              <ul className="space-y-4 mb-8 flex-1">
                 <li className="flex items-center">
-                  <svg className="h-5 w-5 text-blue-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  <svg className="h-5 w-5 text-blue-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                   </svg>
                   Ad-free experience
                 </li>
                 <li className="flex items-center">
-                  <svg className="h-5 w-5 text-blue-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  <svg className="h-5 w-5 text-blue-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                   </svg>
                   15 Stock Lookups / day
                 </li>
                 <li className="flex items-center">
-                  <svg className="h-5 w-5 text-blue-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  <svg className="h-5 w-5 text-blue-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                   </svg>
                   Advanced charts
                 </li>
                 <li className="flex items-center">
-                  <svg className="h-5 w-5 text-blue-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  <svg className="h-5 w-5 text-blue-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                   </svg>
                   Priority email support
                 </li>
               </ul>
-              <div className="mt-8">
-                <button className="w-full bg-blue-400 text-white py-3 px-4 rounded-lg font-bold hover:bg-blue-500 transition duration-300">
-                  TRY IT NOW
-                </button>
-              </div>
+              <button 
+                className="w-full bg-blue-500 text-white rounded py-2 px-4 hover:bg-blue-600 transition-colors"
+                onClick={() => handlePlanSelection('standard')}
+              >
+                TRY IT NOW
+              </button>
             </div>
           </div>
 
-          {/* Pro Plan */}
-          <div className="bg-[#2a2a2a] rounded-lg shadow-xl overflow-hidden h-full flex flex-col">
-            <div className="bg-blue-600 p-6 text-center">
-              <div className="text-3xl font-bold text-white">Professional</div>
+          {/* Professional Plan */}
+          <div className="rounded-lg overflow-hidden shadow-lg h-full flex flex-col">
+            <div className="bg-blue-700 p-6">
+              <h2 className="text-2xl font-bold text-white">Professional</h2>
             </div>
-            <div className="p-8 bg-white text-gray-800 flex-grow flex flex-col">
-              <div className="text-center mb-6">
-                <div className="text-5xl font-bold">$49.99</div>
-                <div className="text-blue-600 mt-2">Per month</div>
-                <div className="text-gray-600 mt-1">For active traders</div>
-              </div>
-              <ul className="space-y-4 flex-grow">
+            <div className="bg-white text-gray-800 p-8 flex flex-col flex-1">
+              <div className="text-5xl font-bold mb-2">$49.99</div>
+              <p className="text-blue-700 mb-2">Per month</p>
+              <p className="text-gray-600 mb-6">For active traders</p>
+              <ul className="space-y-4 mb-8 flex-1">
                 <li className="flex items-center">
-                  <svg className="h-5 w-5 text-blue-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  <svg className="h-5 w-5 text-blue-700 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                   </svg>
                   Ad-free experience
                 </li>
                 <li className="flex items-center">
-                  <svg className="h-5 w-5 text-blue-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  <svg className="h-5 w-5 text-blue-700 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                   </svg>
                   Unlimited Stock Lookups
                 </li>
                 <li className="flex items-center">
-                  <svg className="h-5 w-5 text-blue-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  <svg className="h-5 w-5 text-blue-700 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                   </svg>
                   Premium charts & indicators
                 </li>
                 <li className="flex items-center">
-                  <svg className="h-5 w-5 text-blue-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  <svg className="h-5 w-5 text-blue-700 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                   </svg>
                   24/7 priority support
                 </li>
               </ul>
-              <div className="mt-8">
-                <button className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-bold hover:bg-blue-700 transition duration-300">
-                  TRY IT NOW
-                </button>
-              </div>
+              <button 
+                className="w-full bg-blue-700 text-white rounded py-2 px-4 hover:bg-blue-800 transition-colors"
+                onClick={() => handlePlanSelection('professional')}
+              >
+                TRY IT NOW
+              </button>
             </div>
           </div>
         </div>
