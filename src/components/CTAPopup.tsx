@@ -10,38 +10,44 @@ const CTAPopup = ({ isOpen, onClose }: CTAPopupProps) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
-      <div className="bg-[#2a2a2a] rounded-lg p-6 max-w-md w-full border border-[#374151] shadow-xl">
-        <div className="flex justify-between items-start mb-4">
-          <h3 className="text-xl font-bold text-white">Enjoying RetailEdge?</h3>
-          <button 
-            onClick={onClose}
-            className="text-gray-400 hover:text-white"
-          >
-            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
+      <div className="bg-[#1e2533] rounded-lg p-8 max-w-md w-full shadow-xl text-center text-white relative border border-[#3a4c6a]">
+        {/* Close button - faint X at top */}
+        <button 
+          onClick={onClose}
+          className="absolute top-3 right-3 text-white opacity-60 hover:opacity-100"
+          aria-label="Close"
+        >
+          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+        
+        {/* Icon */}
+        <div className="mx-auto bg-gradient-to-r from-[#3a4c6a] to-[#1e2533] rounded-full p-3 w-16 h-16 flex items-center justify-center mb-4 border-2 border-white">
+          <svg className="h-8 w-8 text-[#4fc3e8]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+          </svg>
         </div>
         
-        <p className="text-gray-300 mb-6">
-          We hope you're finding our stock analysis tools valuable! For even more powerful features and insights, check out our premium plans.
+        {/* Main heading with gradient text */}
+        <h3 className="text-2xl font-bold mb-3 bg-clip-text text-transparent bg-gradient-to-r from-[#4fc3e8] to-[#4ab98e]">Level Up Your Trading</h3>
+        
+        {/* Descriptive text */}
+        <p className="mb-6 text-white">
+          Unlock more stock searches and access advanced charting tools to enhance your investment strategy!
         </p>
         
-        <div className="flex flex-col sm:flex-row gap-4">
-          <button
-            onClick={onClose}
-            className="flex-1 bg-gray-700 text-white rounded py-2 px-4 hover:bg-gray-600"
-          >
-            Maybe Later
-          </button>
-          <Link
-            to="/pricing"
-            className="flex-1 bg-blue-600 text-white rounded py-2 px-4 hover:bg-blue-700 text-center"
-            onClick={onClose}
-          >
-            View Premium Plans
-          </Link>
-        </div>
+        {/* Subscribe button with gradient */}
+        <Link
+          to="/pricing"
+          className="inline-block bg-gradient-to-r from-[#4fc3e8] to-[#4ab98e] text-white font-semibold rounded-md py-2 px-8 hover:opacity-90 transition-all shadow-lg transform hover:-translate-y-0.5"
+          onClick={(e) => {
+            e.stopPropagation();
+            onClose();
+          }}
+        >
+          Upgrade Now
+        </Link>
       </div>
     </div>
   );
